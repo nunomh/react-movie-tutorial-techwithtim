@@ -1,37 +1,28 @@
 import MovieCard from '../components/MovieCard';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { searchMovies, getPopularMovies } from '../services/api';
 import '../css/Home.css';
 
 function Home() {
     const [searchQuery, setSearchQuery] = useState('');
+    const [movies, setMovies] = useState([]);
+    const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(true);
 
-    const movies = [
-        {
-            id: 1,
-            title: 'Movie 1',
-            release_date: '2023-01-01',
-        },
-        {
-            id: 2,
-            title: 'Movie 2',
-            release_date: '2023-02-01',
-        },
-        {
-            id: 3,
-            title: 'Movie 3',
-            release_date: '2023-03-01',
-        },
-        {
-            id: 4,
-            title: 'Movie 4',
-            release_date: '2023-04-01',
-        },
-        {
-            id: 5,
-            title: 'Movie 5',
-            release_date: '2023-05-01',
-        },
-    ];
+    useEffect(() => {
+        const loadPopularMovies = async () => {
+            try {
+                const popularMovies = await getPopularMovies();
+                setMovies(popularMovies);
+            } catch (error) {
+                console.error('Error fetching popular movies:', error);
+                setError(error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadPopularMovies();
+    }, []);
 
     const handleSearch = event => {
         event.preventDefault(); // Prevent the default form submission and page reload
@@ -53,13 +44,19 @@ function Home() {
                 </button>
             </form>
 
-            <div className="movies-grid">
-                {movies.map(movie => (
-                    // movie.title.toLowerCase().includes(searchQuery.toLowerCase()) && ( // filter movies based on search query example
-                    <MovieCard movie={movie} key={movie.id} />
-                    // )
-                ))}
-            </div>
+            {loading ? (
+                <p className="loading">Loading...</p>
+            ) : (
+                <div className="movies-grid">
+                    {movies.map(movie => (
+                        // movie.title.toLowerCase().includes(searchQuery.toLowerCase()) && ( // filter movies based on search query example
+                        <MovieCard movie={movie} key={movie.id} />
+                        // )
+                    ))}
+                </div>
+            )}
+
+            {error && <p className="error-message">Error: {error.message}</p>}
         </div>
     );
 }
