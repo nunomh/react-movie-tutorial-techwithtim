@@ -24,9 +24,30 @@ function Home() {
         loadPopularMovies();
     }, []);
 
-    const handleSearch = event => {
+    const handleSearch = async event => {
         event.preventDefault(); // Prevent the default form submission and page reload
-        alert(`Searching for: ${searchQuery}`);
+
+        if (!searchQuery.trim()) {
+            return; // If the search query is empty, do nothing
+        }
+        if (loading) {
+            return; // If already loading, do nothing
+        }
+
+        setLoading(true);
+
+        try {
+            const searchResults = await searchMovies(searchQuery);
+            setMovies(searchResults);
+            setError(null); // Clear any previous errors
+        } catch (error) {
+            console.error('Error searching movies:', error);
+            setError(error);
+        } finally {
+            setLoading(false);
+        }
+
+        setSearchQuery('');
     };
 
     return (
